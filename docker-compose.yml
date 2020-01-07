@@ -1,0 +1,36 @@
+version: '2'
+
+services:
+  traefik:
+    image: traefik:1.7
+    restart: always
+    ports:
+      - 80:80
+      - 443:443
+    networks:
+      - traefik-net
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/traefik/acme.json:/acme.json
+    container_name: traefik
+    command:
+      - --debug=false
+      - --logLevel=ERROR
+      - --defaultentrypoints=https,http
+      - --entryPoints=Name:http Address::80 Redirect.EntryPoint:https
+      - --entryPoints=Name:https Address::443 TLS
+      - --retry
+      - --docker.endpoint=unix:///var/run/docker.sock
+      - --docker.domain=spgo.xyz
+      - --docker.watch=true
+      - --docker.exposedbydefault=false
+      - --acme.email=ostling.simon@gmail.com
+      - --acme.storage=acme.json
+      - --acme.entryPoint=https
+      - --acme.onHostRule=true
+      - --acme.httpchallenge.entrypoint=http
+
+networks:
+  traefik-net:
+    external: true
+
